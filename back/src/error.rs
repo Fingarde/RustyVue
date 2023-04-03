@@ -3,10 +3,12 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("data store disconnected")]
+    #[error("Actix error")]
     Actix(#[from] actix_web::Error),
-    #[error("data store disconnected")]
+    #[error("IO error")]
     Io(#[from] std::io::Error),
-    #[error("data store disconnected")]
+    #[error("Envy error")]
     Envy(#[from] envy::Error),
+    #[error("Diesel error")]
+    Diesel(#[from] diesel::ConnectionError),
 }

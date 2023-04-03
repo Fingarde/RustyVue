@@ -1,8 +1,11 @@
 use log::{ info, warn, debug };
-use actix_web::{get, App, HttpServer, Responder, web::{self, Data}};
+use actix_web::{dev::ServiceRequest, get, post, App, HttpServer, Responder, web::{self, Data}, HttpResponse};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
+use actix_web_httpauth::extractors::bearer::{BearerAuth};
+use actix_web_httpauth::middleware::HttpAuthentication;
+use serde::{Deserialize};
 
 mod error;
 mod config;
@@ -48,15 +51,25 @@ async fn main() -> Result<(), Error> {
 
     info!("Starting server on http://{}:{}/", server_config.address, server_config.port);
 
-   
+  
     HttpServer::new(move || {
+        let auth = HttpAuthentication::bearer(validator);
+
         App::new()
         // add database connection to app data
         .app_data(Data::new(pool.clone()))
         // enable logger - always register actix-web Logger middleware last because it is called in reverse order
         .wrap(actix_web::middleware::Logger::default())
-        .service(index)
-        .service(list_posts)
+        .service(web::scope("/auth")
+            .service(login)
+            .service(register)
+        )
+        .service(web::scope("/api")
+            .wrap(auth)
+            .service(index)
+            .service(list_posts)
+        )
+
     })
     .bind((server_config.address, server_config.port))?
     .run()
@@ -69,13 +82,14 @@ async fn main() -> Result<(), Error> {
 }
 
 
-#[get("/")]
-async fn index(pool: web::Data<Pool>) -> impl Responder {
+#[post("/")]
+async fn index(json: web::Json<Post>, pool: web::Data<Pool>) -> impl Responder {
     use crate::schema::posts::dsl::*;
 
     let mut conn = pool.get().unwrap();
 
-
+    let form = json.into_inner();
+    
     let result = diesel::insert_into(posts).values(&Post {
         id: 2,
         title: "Hello world!".to_string(),
@@ -86,9 +100,10 @@ async fn index(pool: web::Data<Pool>) -> impl Responder {
     format!("Inserted {:?}", result)
 }
 
+
 // list all
 #[get("/posts")]
-async fn list_posts(pool: web::Data<Pool>) -> impl Responder {
+async fn list_posts(pool: web::Data<Pool>) -> HttpResponse {
     use crate::schema::posts::dsl::*;
 
     let mut conn = pool.get().unwrap();
@@ -98,5 +113,26 @@ async fn list_posts(pool: web::Data<Pool>) -> impl Responder {
         .load::<Post>(&mut conn)
         .expect("Error loading posts");
 
-    format!("Displaying {} posts \n {:?}", results.len(), results)
+    HttpResponse::Ok().json(results)
+}
+
+#[get("/login")]
+async fn login() -> impl Responder {
+    "Login"
+}
+
+#[get("/register")]
+async fn register() -> impl Responder {
+    "Register"
+}
+
+
+async fn validator(req: ServiceRequest, credentials: BearerAuth) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
+    let token = credentials.token();
+
+    if token == "123" {
+        return Ok(req);
+    }
+
+    Err((actix_web::error::ErrorUnauthorized("Invalid token").into(), req))
 }

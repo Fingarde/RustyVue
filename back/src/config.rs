@@ -1,12 +1,11 @@
-use serde::{Deserialize};
-
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct ServerConfig {
     #[serde(default = "server::default_port")]
     pub port: u16,
     #[serde(default = "server::default_address")]
-    pub address: String
+    pub address: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -54,4 +53,3 @@ mod server {
         "127.0.0.1".to_string()
     }
 }
-    

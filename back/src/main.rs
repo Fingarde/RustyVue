@@ -48,6 +48,8 @@ async fn main() -> Result<(), Error> {
             .app_data(Data::new(pool.clone()))
             // enable logger - always register actix-web Logger middleware last because it is called in reverse order
             .wrap(actix_web::middleware::Logger::default())
+
+            // register routers
             .configure(AuthRouterFactory::config)
             .configure(PostRouterFactory::config)
     })
@@ -58,46 +60,4 @@ async fn main() -> Result<(), Error> {
     info!("Server stopped");
 
     Ok(())
-}
-
-#[post("/")]
-async fn index(json: web::Json<Post>, pool: web::Data<database::Pool>) -> impl Responder {
-    use crate::schema::posts::dsl::*;
-
-    let mut conn = pool.get().unwrap();
-
-    let form = json.into_inner();
-
-    let result = diesel::insert_into(posts)
-        .values(form)
-        .get_result::<Post>(&mut conn)
-        .expect("Error saving new post");
-
-    format!("Inserted {:?}", result)
-}
-
-// list all
-#[get("/posts")]
-async fn list_posts(pool: web::Data<database::Pool>) -> HttpResponse {
-    use crate::schema::posts::dsl::*;
-
-    let mut conn = pool.get().unwrap();
-
-    let results = posts
-        .limit(5)
-        .filter(published.eq(true))
-        .load::<Post>(&mut conn)
-        .expect("Error loading posts");
-
-    HttpResponse::Ok().json(results)
-}
-
-#[get("/login")]
-async fn login() -> impl Responder {
-    "Login"
-}
-
-#[get("/register")]
-async fn register() -> impl Responder {
-    "Register"
 }

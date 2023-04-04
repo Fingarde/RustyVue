@@ -10,16 +10,20 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use log::{debug, info, warn};
-use serde::Deserialize;
 
+pub mod auth;
 mod config;
+pub mod controller;
 mod error;
 mod model;
+mod router;
 mod schema;
 
 use crate::config::{DatabaseConfig, ServerConfig};
 use crate::error::Error;
 use crate::model::Post;
+use crate::router::RouterFactory;
+use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory};
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -56,7 +60,7 @@ async fn main() -> Result<(), Error> {
     info!("Connecting to database at {}", database_url);
 
     let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool: Pool = r2d2::Pool::builder()
+    let pool: Pool = Pool::builder()
         .build(manager)
         .expect("Failed to create pool.");
 
@@ -66,20 +70,13 @@ async fn main() -> Result<(), Error> {
     );
 
     HttpServer::new(move || {
-        let auth = HttpAuthentication::bearer(validator);
-
         App::new()
             // add database connection to app data
             .app_data(Data::new(pool.clone()))
             // enable logger - always register actix-web Logger middleware last because it is called in reverse order
             .wrap(actix_web::middleware::Logger::default())
-            .service(web::scope("/auth").service(login).service(register))
-            .service(
-                web::scope("/api")
-                    .wrap(auth)
-                    .service(index)
-                    .service(list_posts),
-            )
+            .configure(AuthRouterFactory::config)
+            .configure(PostRouterFactory::config)
     })
     .bind((server_config.address, server_config.port))?
     .run()
@@ -99,12 +96,7 @@ async fn index(json: web::Json<Post>, pool: web::Data<Pool>) -> impl Responder {
     let form = json.into_inner();
 
     let result = diesel::insert_into(posts)
-        .values(&Post {
-            id: 2,
-            title: "Hello world!".to_string(),
-            body: "Hello world!".to_string(),
-            published: true,
-        })
+        .values(form)
         .get_result::<Post>(&mut conn)
         .expect("Error saving new post");
 
@@ -120,6 +112,7 @@ async fn list_posts(pool: web::Data<Pool>) -> HttpResponse {
 
     let results = posts
         .limit(5)
+        .filter(published.eq(true))
         .load::<Post>(&mut conn)
         .expect("Error loading posts");
 
@@ -134,20 +127,4 @@ async fn login() -> impl Responder {
 #[get("/register")]
 async fn register() -> impl Responder {
     "Register"
-}
-
-async fn validator(
-    req: ServiceRequest,
-    credentials: BearerAuth,
-) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
-    let token = credentials.token();
-
-    if token == "123" {
-        return Ok(req);
-    }
-
-    Err((
-        actix_web::error::ErrorUnauthorized("Invalid token").into(),
-        req,
-    ))
 }

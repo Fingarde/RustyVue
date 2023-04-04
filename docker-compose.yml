@@ -5,16 +5,13 @@ services:
     volumes:
       - ./db:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: example
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
-  front:
-    build: ./front
-    ports:
-      - "3000:3000"
+ 
   back:
     build: ./back
     ports:
-      - "8000:8000"
+      - "8080:8080"
     depends_on:
       - db

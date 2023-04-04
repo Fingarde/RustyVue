@@ -11,7 +11,6 @@ mod database;
 mod error;
 mod model;
 mod router;
-mod schema;
 mod utils;
 
 use crate::error::Error;

@@ -4,6 +4,8 @@ use log::info;
 
 use crate::config::database::DatabaseConfig;
 
+pub mod schema;
+
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 pub fn connect(config: DatabaseConfig) -> Pool {

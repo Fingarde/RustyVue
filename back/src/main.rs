@@ -1,10 +1,4 @@
-use actix_web::{
-    get, post,
-    web::{self, Data},
-    App, HttpResponse, HttpServer, Responder,
-};
-
-use diesel::prelude::*;
+use actix_web::{web::Data, App, HttpServer};
 
 use crate::config::database::DatabaseConfig;
 use crate::config::server::ServerConfig;
@@ -21,7 +15,7 @@ mod schema;
 mod utils;
 
 use crate::error::Error;
-use crate::model::Post;
+
 use crate::router::RouterFactory;
 use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory};
 
@@ -48,7 +42,6 @@ async fn main() -> Result<(), Error> {
             .app_data(Data::new(pool.clone()))
             // enable logger - always register actix-web Logger middleware last because it is called in reverse order
             .wrap(actix_web::middleware::Logger::default())
-
             // register routers
             .configure(AuthRouterFactory::config)
             .configure(PostRouterFactory::config)

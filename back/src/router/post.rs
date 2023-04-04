@@ -1,9 +1,9 @@
-use actix_web::dev::{Service, ServiceFactory, ServiceRequest, ServiceResponse};
-use actix_web::web::{resource, scope};
-use actix_web::{web, Error, Scope};
-use actix_web_httpauth::extractors::bearer::BearerAuth;
+
+use actix_web::web::{scope};
+use actix_web::{web};
+
 use actix_web_httpauth::middleware::HttpAuthentication;
-use std::future::Future;
+
 
 use crate::auth::validator;
 use crate::controller::post::{create, delete, get, list, update};

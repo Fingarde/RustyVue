@@ -1,7 +1,7 @@
 use crate::controller::auth::{login, register};
 use crate::router::RouterFactory;
-use actix_web::web::{scope, ServiceConfig};
-use actix_web::{web, Scope};
+use actix_web::web::{scope};
+use actix_web::{web};
 
 pub struct AuthRouterFactory {}
 

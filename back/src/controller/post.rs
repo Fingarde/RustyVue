@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder};
+use actix_web::{HttpResponse};
 
 pub async fn create() -> HttpResponse {
     HttpResponse::Ok().body("Create")

@@ -1,68 +1,44 @@
 use actix_web::{
-    dev::ServiceRequest,
     get, post,
     web::{self, Data},
     App, HttpResponse, HttpServer, Responder,
 };
-use actix_web_httpauth::extractors::bearer::BearerAuth;
-use actix_web_httpauth::middleware::HttpAuthentication;
+
+
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use log::{debug, info, warn};
+use crate::config::database::DatabaseConfig;
+use crate::config::server::ServerConfig;
 
-pub mod auth;
-mod config;
-pub mod controller;
+mod auth;
+mod controller;
 mod error;
 mod model;
 mod router;
 mod schema;
+mod database;
+mod config;
+mod utils;
 
-use crate::config::{DatabaseConfig, ServerConfig};
 use crate::error::Error;
 use crate::model::Post;
 use crate::router::RouterFactory;
 use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory};
 
-pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[actix_web::main]
 async fn main() -> Result<(), Error> {
-    // load .env file and initialize logger
-    let dotenv = dotenvy::dotenv();
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
-
-    // if .env file is not found, warn the user
-    if dotenv.is_err() {
-        warn!("No .env file found");
-    }
-
-    // print all env vars in debug mode
-    for (key, value) in std::env::vars() {
-        debug!("{}: {}", key, value);
-    }
+    // load env + initialize logger
+    utils::load_env();
 
     // read configs from env vars
-    let server_config = envy::prefixed("SERVER_").from_env::<ServerConfig>()?;
-    let database_config = envy::prefixed("DATABASE_").from_env::<DatabaseConfig>()?;
+    let server_config = ServerConfig::from_env()?;
+    let database_config = DatabaseConfig::from_env()?;
 
-    // create postgres connection string
-    let database_url = format!(
-        "postgres://{}:{}@{}:{}/{}",
-        database_config.username,
-        database_config.password,
-        database_config.address,
-        database_config.port,
-        database_config.database
-    );
-
-    info!("Connecting to database at {}", database_url);
-
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool: Pool = Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
+    // create database connection pool
+    let pool = database::connect(database_config);
 
     info!(
         "Starting server on http://{}:{}/",
@@ -88,7 +64,7 @@ async fn main() -> Result<(), Error> {
 }
 
 #[post("/")]
-async fn index(json: web::Json<Post>, pool: web::Data<Pool>) -> impl Responder {
+async fn index(json: web::Json<Post>, pool: web::Data<database::Pool>) -> impl Responder {
     use crate::schema::posts::dsl::*;
 
     let mut conn = pool.get().unwrap();
@@ -105,7 +81,7 @@ async fn index(json: web::Json<Post>, pool: web::Data<Pool>) -> impl Responder {
 
 // list all
 #[get("/posts")]
-async fn list_posts(pool: web::Data<Pool>) -> HttpResponse {
+async fn list_posts(pool: web::Data<database::Pool>) -> HttpResponse {
     use crate::schema::posts::dsl::*;
 
     let mut conn = pool.get().unwrap();

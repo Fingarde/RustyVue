@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse};
+use actix_web::HttpResponse;
 
 pub async fn login() -> HttpResponse {
     HttpResponse::Ok().body("Login")

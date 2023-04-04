@@ -10,7 +10,6 @@ pub struct ServerConfig {
     pub address: String,
 }
 
-
 mod default {
     pub fn port() -> u16 {
         8080
@@ -23,7 +22,8 @@ mod default {
 
 impl ServerConfig {
     pub fn from_env() -> Result<Self, Error> {
-        envy::prefixed("SERVER_").from_env::<Self>().map_err(Into::into)
+        envy::prefixed("SERVER_")
+            .from_env::<Self>()
+            .map_err(Into::into)
     }
 }
-

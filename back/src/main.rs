@@ -4,29 +4,26 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder,
 };
 
-
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::r2d2::{self, ConnectionManager};
-use log::{debug, info, warn};
+
 use crate::config::database::DatabaseConfig;
 use crate::config::server::ServerConfig;
+use log::info;
 
 mod auth;
+mod config;
 mod controller;
+mod database;
 mod error;
 mod model;
 mod router;
 mod schema;
-mod database;
-mod config;
 mod utils;
 
 use crate::error::Error;
 use crate::model::Post;
 use crate::router::RouterFactory;
 use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory};
-
 
 #[actix_web::main]
 async fn main() -> Result<(), Error> {

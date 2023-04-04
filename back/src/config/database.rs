@@ -40,6 +40,8 @@ mod default {
 
 impl DatabaseConfig {
     pub fn from_env() -> Result<Self, Error> {
-        envy::prefixed("DATABASE_").from_env::<Self>().map_err(Into::into)
+        envy::prefixed("DATABASE_")
+            .from_env::<Self>()
+            .map_err(Into::into)
     }
 }

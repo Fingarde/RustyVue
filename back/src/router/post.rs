@@ -1,9 +1,7 @@
-
-use actix_web::web::{scope};
-use actix_web::{web};
+use actix_web::web;
+use actix_web::web::scope;
 
 use actix_web_httpauth::middleware::HttpAuthentication;
-
 
 use crate::auth::validator;
 use crate::controller::post::{create, delete, get, list, update};

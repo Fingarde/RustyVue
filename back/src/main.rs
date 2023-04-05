@@ -19,7 +19,7 @@ mod utils;
 use crate::error::Error;
 
 use crate::router::RouterFactory;
-use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory};
+use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory, user::UserRouterFactory};
 
 #[actix_web::main]
 async fn main() -> Result<(), Error> {
@@ -45,6 +45,7 @@ async fn main() -> Result<(), Error> {
             // register routers
             .configure(AuthRouterFactory::config)
             .configure(PostRouterFactory::config)
+            .configure(UserRouterFactory::config)
     })
     .bind((server_config.address, server_config.port))?
     .run()

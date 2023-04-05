@@ -12,3 +12,9 @@ pub async fn insert(user: User) -> Result<User, diesel::result::Error> {
         .values(&user)
         .get_result::<User>(&mut conn)
 }
+
+pub async fn list() -> Result<Vec<User>, diesel::result::Error> {
+    let mut conn = database::DATABASE_POOL.get().unwrap().get().unwrap();
+
+    users.load::<User>(&mut conn)
+}

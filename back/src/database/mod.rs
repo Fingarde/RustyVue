@@ -29,5 +29,7 @@ fn connect(config: DatabaseConfig) -> Pool {
 
 pub fn init(config: DatabaseConfig) {
     let pool = connect(config);
-    DATABASE_POOL.set(pool).expect("Failed to set database pool.");
+    DATABASE_POOL
+        .set(pool)
+        .expect("Failed to set database pool.");
 }

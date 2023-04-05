@@ -1,5 +1,4 @@
 use diesel::prelude::*;
-use serde::{Deserialize, Serialize};
 
 use crate::database::schema::posts;
 

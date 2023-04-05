@@ -9,7 +9,7 @@ impl RouterFactory for AuthRouterFactory {
     fn config(cfg: &mut web::ServiceConfig) {
         cfg.service(
             scope("/auth")
-                .route("/login", web::get().to(login))
+                .route("/login", web::post().to(login))
                 .route("/register", web::post().to(register)),
         );
     }

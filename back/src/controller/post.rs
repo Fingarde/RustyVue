@@ -1,10 +1,9 @@
-use actix_web::{HttpResponse, web};
-use serde::Deserialize;
 use crate::dto::post::PostDto;
+use actix_web::{web, HttpResponse};
+use serde::Deserialize;
 
 use crate::model::post::Post;
 use crate::repository::post as post_repository;
-
 
 #[derive(Deserialize)]
 pub struct CreatePostRequest {
@@ -20,7 +19,6 @@ pub async fn create(post: web::Json<CreatePostRequest>) -> HttpResponse {
         published: false,
     };
 
-
     match post_repository::insert(post) {
         Ok(post) => HttpResponse::Ok().json(PostDto::from(post)),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
@@ -29,7 +27,12 @@ pub async fn create(post: web::Json<CreatePostRequest>) -> HttpResponse {
 
 pub async fn list() -> HttpResponse {
     match post_repository::list() {
-        Ok(posts) => HttpResponse::Ok().json(posts.into_iter().map(PostDto::from).collect::<Vec<PostDto>>()),
+        Ok(posts) => HttpResponse::Ok().json(
+            posts
+                .into_iter()
+                .map(PostDto::from)
+                .collect::<Vec<PostDto>>(),
+        ),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
 }

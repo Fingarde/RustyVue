@@ -1,4 +1,4 @@
-use actix_web::{web::Data, App, HttpServer};
+use actix_web::{App, HttpServer};
 
 use crate::config::database::DatabaseConfig;
 use crate::config::server::ServerConfig;
@@ -8,19 +8,18 @@ mod auth;
 mod config;
 mod controller;
 mod database;
+mod dto;
 mod error;
 mod model;
+mod repository;
 mod router;
 mod utils;
-mod repository;
-mod dto;
+mod service;
 
 use crate::error::Error;
 
 use crate::router::RouterFactory;
 use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory};
-
-
 
 #[actix_web::main]
 async fn main() -> Result<(), Error> {

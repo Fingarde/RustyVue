@@ -1,5 +1,4 @@
-use actix_web::{HttpResponse, web};
-use log::info;
+use actix_web::{web, HttpResponse};
 
 use crate::service::*;
 
@@ -19,13 +18,12 @@ mod parameter {
     }
 }
 
-
 pub async fn login() -> HttpResponse {
     HttpResponse::Ok().body("Login")
 }
 
-pub async fn register(mut json: web::Json<parameter::Register>) -> HttpResponse {
-    let mut param = auth::parameter::Register {
+pub async fn register(json: web::Json<parameter::Register>) -> HttpResponse {
+    let param = auth::parameter::Register {
         username: json.username.clone(),
         email: json.email.clone(),
         password: json.password.clone(),

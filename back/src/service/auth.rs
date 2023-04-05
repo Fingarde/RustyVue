@@ -1,15 +1,15 @@
+use crate::model::user::User;
 use log::info;
 use sanitizer::Sanitize;
 use uuid::Uuid;
 use validator::Validate;
-use crate::model::user::User;
 
 use crate::repository::user as user_repository;
 
 pub mod parameter {
-    use validator::Validate;
     use sanitizer::prelude::*;
     use serde::Deserialize;
+    use validator::Validate;
 
     #[derive(Debug, Validate, Sanitize, Deserialize)]
     pub struct Register {
@@ -35,7 +35,7 @@ pub mod parameter {
 pub async fn register(mut register: parameter::Register) {
     register.sanitize();
 
-    if let Err(e) = register.validate() {
+    if let Err(_e) = register.validate() {
         //return HttpResponse::BadRequest().body(e.to_string());
     }
 
@@ -46,9 +46,7 @@ pub async fn register(mut register: parameter::Register) {
         password: register.password.clone(),
     };
 
-    let user = user_repository::insert(user).await;
-
+    let _user = user_repository::insert(user).await;
 
     info!("Registering user: {}", register.username);
-
 }

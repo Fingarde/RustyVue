@@ -12,4 +12,3 @@ pub async fn insert(user: User) -> Result<User, diesel::result::Error> {
         .values(&user)
         .get_result::<User>(&mut conn)
 }
-

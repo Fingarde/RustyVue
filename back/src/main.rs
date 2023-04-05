@@ -13,8 +13,8 @@ mod error;
 mod model;
 mod repository;
 mod router;
-mod utils;
 mod service;
+mod utils;
 
 use crate::error::Error;
 

@@ -12,11 +12,15 @@ mod error;
 mod model;
 mod router;
 mod utils;
+mod repository;
+mod dto;
 
 use crate::error::Error;
 
 use crate::router::RouterFactory;
 use crate::router::{auth::AuthRouterFactory, post::PostRouterFactory};
+
+
 
 #[actix_web::main]
 async fn main() -> Result<(), Error> {
@@ -28,7 +32,7 @@ async fn main() -> Result<(), Error> {
     let database_config = DatabaseConfig::from_env()?;
 
     // create database connection pool
-    let pool = database::connect(database_config);
+    database::init(database_config);
 
     info!(
         "Starting server on http://{}:{}/",
@@ -37,8 +41,6 @@ async fn main() -> Result<(), Error> {
 
     HttpServer::new(move || {
         App::new()
-            // add database connection to app data
-            .app_data(Data::new(pool.clone()))
             // enable logger - always register actix-web Logger middleware last because it is called in reverse order
             .wrap(actix_web::middleware::Logger::default())
             // register routers

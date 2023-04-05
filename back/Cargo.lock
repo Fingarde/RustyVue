@@ -270,6 +270,7 @@ dependencies = [
  "envy",
  "jsonwebtoken",
  "log",
+ "once_cell",
  "r2d2",
  "serde",
  "serde_json",
